@@ -11,7 +11,7 @@ setup(
     name='guillotina_dynamictablestorage',
     version="1.0.0",
     description='Dynamic storages based on tables '
-                'instead of default databases',
+                'instead of databases',
     long_description=README,
     install_requires=[
         'guillotina>=4.4.0'
