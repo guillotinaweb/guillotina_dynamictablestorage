@@ -25,7 +25,7 @@ app_settings = {
 class PrefixedDatabaseManager(PostgresqlDatabaseManager):
     _pools = {}
 
-    def get_dsn(self, name: str=None) -> str:
+    def get_dsn(self, name: str = None) -> str:
         if isinstance(self.config['dsn'], str):
             return self.config['dsn']
         else:
