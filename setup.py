@@ -27,7 +27,7 @@ setup(
             'docker',
             'backoff',
             'psycopg2',
-            'pytest-asyncio>=0.8.0',
+            'pytest-asyncio<0.10.0',
             'pytest-cov<=2.5.1',
             'coverage>=4.0.3',
             'pytest-docker-fixtures'
