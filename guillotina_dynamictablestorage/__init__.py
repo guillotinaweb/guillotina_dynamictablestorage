@@ -87,6 +87,17 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
 
         return self.app[name]
 
+    async def exists(self, name: str) -> bool:
+        conn = await self.get_connection()
+        try:
+            result = await conn.fetch('''
+        select * FROM information_schema.tables WHERE table_schema='public' and table_name = '{}_objects'
+        '''.format(name))
+            return len(result) > 0
+        finally:
+            await conn.close()
+        return False
+
 
 def includeme(root):
     """
