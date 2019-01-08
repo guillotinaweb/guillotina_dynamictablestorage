@@ -21,9 +21,6 @@ setup(
     url='https://github.com/guillotinaweb/guillotina_dynamictablestorage',
     packages=find_packages(exclude=['demo']),
     include_package_data=True,
-    tests_require=[
-        'pytest',
-    ],
     extras_require={
         'test': [
             'pytest<=3.1.0',
@@ -31,7 +28,7 @@ setup(
             'backoff',
             'psycopg2',
             'pytest-asyncio>=0.8.0',
-            'pytest-cov',
+            'pytest-cov<=2.5.1',
             'coverage>=4.0.3',
             'pytest-docker-fixtures'
         ]

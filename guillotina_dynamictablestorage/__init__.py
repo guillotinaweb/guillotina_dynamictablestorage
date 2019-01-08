@@ -91,7 +91,8 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
         conn = await self.get_connection()
         try:
             result = await conn.fetch('''
-        select * FROM information_schema.tables WHERE table_schema='public' and table_name = '{}_objects'
+select * FROM information_schema.tables
+WHERE table_schema='public' and table_name = '{}_objects'
         '''.format(name))
             return len(result) > 0
         finally:
