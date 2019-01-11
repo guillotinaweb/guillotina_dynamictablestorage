@@ -4,7 +4,6 @@ from guillotina import configure
 from guillotina.component import get_utility
 from guillotina.db.factory import PostgresqlDatabaseManager
 from guillotina.db.factory import _convert_dsn
-from guillotina.db.factory import _get_connection_options
 from guillotina.db.interfaces import IDatabaseManager
 from guillotina.event import notify
 from guillotina.events import DatabaseInitializedEvent
@@ -23,7 +22,7 @@ app_settings = {
     provides=IDatabaseManager,
     name='prefixed-table')
 class PrefixedDatabaseManager(PostgresqlDatabaseManager):
-    _pools = {}
+    _connection_managers = {}  # shared on all instances
 
     def get_dsn(self, name: str = None) -> str:
         if isinstance(self.config['dsn'], str):
@@ -72,17 +71,17 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
                 'objects_table_name': name + '_objects',
                 'blobs_table_name': name + '_blobs'
             })
-            if self.config['storage_id'] in self._pools:
-                config['pool'] = self._pools[self.config['storage_id']]
+            if self.config['storage_id'] in self._connection_managers:
+                config['connection_manager'] = self._connection_managers[
+                    self.config['storage_id']]
             factory = get_utility(
                 IDatabaseConfigurationFactory, name=config['storage'])
             self.app[name] = await apply_coroutine(factory, name, config)
 
-            if self.config['storage_id'] not in self._pools:
+            if self.config['storage_id'] not in self._connection_managers:
                 storage = self.app[name].storage
-                self._pools[self.config['storage_id']] = await storage.get_pool(  # noqa
-                    **_get_connection_options(self.config)
-                )
+                self._connection_managers[
+                    self.config['storage_id']] = storage.connection_manager
             await notify(DatabaseInitializedEvent(self.app[name]))
 
         return self.app[name]
