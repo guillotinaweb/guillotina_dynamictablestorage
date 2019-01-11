@@ -1,18 +1,14 @@
-from guillotina._settings import app_settings
-from guillotina.component import get_adapter
-from guillotina.db.interfaces import IDatabaseManager
-
 import json
 
 
-async def test_get_storages(container_requester):
+async def test_get_storages(container_requester, dyn_storage):
     async with container_requester as requester:
         response, status = await requester('GET', '/@storages')
         assert status == 200
         assert response[0]['id'] == 'db'
 
 
-async def test_get_storage(container_requester):
+async def test_get_storage(container_requester, dyn_storage):
     async with container_requester as requester:
         response, status = await requester('GET', '/@storages/db')
         assert status == 200
@@ -20,7 +16,7 @@ async def test_get_storage(container_requester):
         assert response['databases'] == []
 
 
-async def test_create_database(container_requester):
+async def test_create_database(container_requester, dyn_storage):
     async with container_requester as requester:
         response, status = await requester(
             'POST', '/@storages/db', data=json.dumps({
@@ -32,7 +28,7 @@ async def test_create_database(container_requester):
         await requester('DELETE', '/@storages/db/foobar')
 
 
-async def test_get_database(container_requester):
+async def test_get_database(container_requester, dyn_storage):
     async with container_requester as requester:
         await requester('POST', '/@storages/db', data=json.dumps({
             'name': 'foobar'
@@ -43,7 +39,7 @@ async def test_get_database(container_requester):
         await requester('DELETE', '/@storages/db/foobar')
 
 
-async def test_delete_database(container_requester):
+async def test_delete_database(container_requester, dyn_storage):
     async with container_requester as requester:
         await requester('POST', '/@storages/db', data=json.dumps({
             'name': 'foobar'
@@ -54,27 +50,38 @@ async def test_delete_database(container_requester):
         assert 'foobar' not in response['databases']
 
 
-async def test_storage_impl(db, guillotina_main):
-    storages = app_settings['storages']
-    storage_config = storages['db']
-    factory = get_adapter(guillotina_main.root, IDatabaseManager,
-                          name=storage_config['storage'],
-                          args=[storage_config])
-    original_size = len(await factory.get_names())
-    await factory.create('foobar')
-    assert len(await factory.get_names()) == (original_size + 1)
-    await factory.delete('foobar')
-    assert len(await factory.get_names()) == original_size
+async def test_delete_add_and_reuse_database(container_requester, dyn_storage):
+    async with container_requester as requester:
+        await requester('POST', '/@storages/db', data=json.dumps({
+            'name': 'foobar'
+        }))
+        response, status = await requester('DELETE', '/@storages/db/foobar')
+        assert status == 200
+        response, status = await requester('GET', '/@storages/db')
+        assert 'foobar' not in response['databases']
+
+        # test should still have pool active
+        assert dyn_storage._connection_managers['db'].pool is not None
+
+        await requester('POST', '/@storages/db', data=json.dumps({
+            'name': 'foobar2'
+        }))
+
+        response, status = await requester('GET', '/@storages/db')
+        assert 'foobar2' in response['databases']
 
 
-async def test_storage_exists(db, guillotina_main):
-    storages = app_settings['storages']
-    storage_config = storages['db']
-    factory = get_adapter(guillotina_main.root, IDatabaseManager,
-                          name=storage_config['storage'],
-                          args=[storage_config])
-    assert not await factory.exists('foobar')
-    await factory.create('foobar')
-    assert await factory.exists('foobar')
-    await factory.delete('foobar')
-    assert not await factory.exists('foobar')
+async def test_storage_impl(dyn_storage):
+    original_size = len(await dyn_storage.get_names())
+    await dyn_storage.create('foobar')
+    assert len(await dyn_storage.get_names()) == (original_size + 1)
+    await dyn_storage.delete('foobar')
+    assert len(await dyn_storage.get_names()) == original_size
+
+
+async def test_storage_exists(dyn_storage):
+    assert not await dyn_storage.exists('foobar')
+    await dyn_storage.create('foobar')
+    assert await dyn_storage.exists('foobar')
+    await dyn_storage.delete('foobar')
+    assert not await dyn_storage.exists('foobar')

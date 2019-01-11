@@ -82,6 +82,8 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
                 storage = self.app[name].storage
                 self._connection_managers[
                     self.config['storage_id']] = storage.connection_manager
+                self._connection_managers[
+                    self.config['storage_id']]._closable = False
             await notify(DatabaseInitializedEvent(self.app[name]))
 
         return self.app[name]

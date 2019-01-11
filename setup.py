@@ -14,7 +14,7 @@ setup(
                 'instead of databases',
     long_description=README,
     install_requires=[
-        'guillotina>=4.4.3'
+        'guillotina>=4.4.4'
     ],
     author='Nathan Van Gheem',
     author_email='vangheem@gmail.com',

@@ -1,7 +1,8 @@
 1.0.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix tests, fix when database is deleted
+  [vangheem]
 
 
 1.0.2 (2019-01-11)
