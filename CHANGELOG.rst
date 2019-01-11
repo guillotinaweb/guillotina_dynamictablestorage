@@ -1,4 +1,4 @@
-1.0.3 (unreleased)
+1.0.3 (2019-01-11)
 ------------------
 
 - Fix tests, fix when database is deleted
