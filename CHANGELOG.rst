@@ -1,8 +1,8 @@
 1.0.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Use shared connection lock
+  [vangheem]
 
 1.0.3 (2019-01-11)
 ------------------
