@@ -1,4 +1,7 @@
+import asyncio
 import json
+
+from guillotina.tests.mocks import MockTransaction
 
 
 async def test_get_storages(container_requester, dyn_storage):
@@ -85,3 +88,18 @@ async def test_storage_exists(dyn_storage):
     assert await dyn_storage.exists('foobar')
     await dyn_storage.delete('foobar')
     assert not await dyn_storage.exists('foobar')
+
+
+async def test_does_not_throw_simultaneous_error(dyn_storage):
+    db1 = await dyn_storage.get_database('foobar1')
+    db2 = await dyn_storage.get_database('foobar2')
+    storage1 = db1.storage
+    storage2 = db2.storage
+
+    txn = MockTransaction()
+    txn.modified = {'foobar': None}
+
+    await asyncio.gather(
+        storage1.get_conflicts(txn),
+        storage2.get_conflicts(txn)
+    )
