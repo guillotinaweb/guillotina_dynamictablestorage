@@ -1,7 +1,7 @@
 1.0.5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- restrict req'd g
 
 
 1.0.4 (2019-01-23)
