@@ -9,7 +9,7 @@ except IOError:
 
 setup(
     name='guillotina_dynamictablestorage',
-    version='1.0.5',
+    version='1.0.6.dev0',
     description='Dynamic storages based on tables '
                 'instead of databases',
     long_description=README,
