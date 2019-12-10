@@ -9,12 +9,12 @@ except IOError:
 
 setup(
     name='guillotina_dynamictablestorage',
-    version='1.0.6.dev0',
+    version='1.1.0.dev0',
     description='Dynamic storages based on tables '
                 'instead of databases',
     long_description=README,
     install_requires=[
-        'guillotina>=4.4.10.dev0,<5'
+        'guillotina>=5'
     ],
     author='Nathan Van Gheem',
     author_email='vangheem@gmail.com',
