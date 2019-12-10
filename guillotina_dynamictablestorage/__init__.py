@@ -1,4 +1,5 @@
 from copy import deepcopy
+from guillotina.contrib.catalog.pg import sqlq
 
 from guillotina import configure
 from guillotina.component import get_utility
@@ -57,7 +58,7 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
         try:
             for table_name in ('blobs', 'objects'):
                 await conn.execute(
-                    'DROP TABLE IF EXISTS {}_{}'.format(name, table_name))
+                    'DROP TABLE IF EXISTS {}_{}'.format(sqlq(name), sqlq(table_name)))
             return True
         finally:
             await conn.close()
@@ -94,7 +95,7 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
             result = await conn.fetch('''
 select * FROM information_schema.tables
 WHERE table_schema='public' and table_name = '{}_objects'
-        '''.format(name))
+        '''.format(sqlq(name)))
             return len(result) > 0
         finally:
             await conn.close()

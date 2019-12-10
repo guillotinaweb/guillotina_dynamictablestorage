@@ -1,7 +1,8 @@
-1.0.6 (unreleased)
+1.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix possible sql injection
+  [vangheem]
 
 
 1.0.5 (2019-06-18)
