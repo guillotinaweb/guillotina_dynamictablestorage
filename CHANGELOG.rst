@@ -1,4 +1,4 @@
-1.1.0 (unreleased)
+1.1.0 (2019-12-10)
 ------------------
 
 - Fix possible sql injection
