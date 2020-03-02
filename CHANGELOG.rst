@@ -1,4 +1,4 @@
-1.1.1 (unreleased)
+1.1.1 (2020-03-02)
 ------------------
 
 - set `__storage_id__` attributes on db instance
