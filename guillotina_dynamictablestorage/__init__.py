@@ -78,6 +78,7 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
             factory = get_utility(
                 IDatabaseConfigurationFactory, name=config['storage'])
             self.app[name] = await apply_coroutine(factory, name, config)
+            self.app[name].__storage_id__ = self.config['storage_id']
 
             if self.config['storage_id'] not in self._connection_managers:
                 storage = self.app[name].storage

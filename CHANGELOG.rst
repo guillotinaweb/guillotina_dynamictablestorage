@@ -1,7 +1,8 @@
 1.1.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- set `__storage_id__` attributes on db instance
+  [vangheem]
 
 
 1.1.0 (2019-12-10)
