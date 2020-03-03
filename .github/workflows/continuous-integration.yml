@@ -1,0 +1,53 @@
+name: guillotina_dynamictablestorage
+
+on: [push]
+
+jobs:
+
+  pre-checks:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+    steps:
+      # Checkout the repository first
+      - uses: actions/checkout@v2
+
+      # Setup the python version
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Linters and typing
+      - name: Pre-checks
+        run: |
+          pip install flake8 black isort
+          flake8 guillotina_dynamictablestorage --config=setup.cfg
+          isort -c -rc guillotina_dynamictablestorage
+          black --check --verbose guillotina_dynamictablestorage
+
+  tests:
+    needs: pre-checks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+    env:
+      DATABASE: postgres
+    steps:
+      # Checkout the repository first
+      - uses: actions/checkout@v2
+
+      # Setup the python version
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run tests
+        run: |
+          pip install Cython==0.27.3
+          pip install -r requirements.txt
+          pip install -e .[test]
+          pytest -s --cov=guillotina_dynamictablestorage -s --tb=native -v --cov-report term-missing --cov-append guillotina_dynamictablestorage
