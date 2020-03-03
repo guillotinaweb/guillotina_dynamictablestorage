@@ -3,15 +3,12 @@ name: guillotina_dynamictablestorage
 on: [push]
 
 jobs:
-  build:
 
+  pre-checks:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7]
-
-    env:
-      DATABASE: postgres
+        python-version: [3.7]
 
     steps:
       # Checkout the repository first
@@ -31,7 +28,15 @@ jobs:
           isort -c -rc guillotina_dynamictablestorage
           black --check --verbose guillotina_dynamictablestorage
 
-      # Run tests
+  tests:
+    needs: pre-checks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+    env:
+      DATABASE: postgres
+    steps:
       - name: Run tests
         run: |
           pip install Cython==0.27.3
