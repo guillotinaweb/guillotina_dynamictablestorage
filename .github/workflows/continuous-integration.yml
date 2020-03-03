@@ -10,6 +10,9 @@ jobs:
       matrix:
         python-version: [3.6, 3.7]
 
+    env:
+      DATABASE: postgres
+
     steps:
       # Checkout the repository first
       - uses: actions/checkout@v2
