@@ -9,7 +9,6 @@ jobs:
     strategy:
       matrix:
         python-version: [3.7]
-
     steps:
       # Checkout the repository first
       - uses: actions/checkout@v2
@@ -37,6 +36,15 @@ jobs:
     env:
       DATABASE: postgres
     steps:
+      # Checkout the repository first
+      - uses: actions/checkout@v2
+
+      # Setup the python version
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: Run tests
         run: |
           pip install Cython==0.27.3
