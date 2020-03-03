@@ -1,8 +1,8 @@
 from copy import deepcopy
-from guillotina.contrib.catalog.pg import sqlq
 
 from guillotina import configure
 from guillotina.component import get_utility
+from guillotina.contrib.catalog.pg import sqlq
 from guillotina.db.factory import PostgresqlDatabaseManager
 from guillotina.db.factory import _convert_dsn
 from guillotina.db.interfaces import IDatabaseManager
@@ -14,32 +14,34 @@ from guillotina.interfaces import IDatabaseConfigurationFactory
 from guillotina.utils import apply_coroutine
 
 
-app_settings = {
-}
+app_settings = {}
 
 
 @configure.adapter(
-    for_=IApplication,  # noqa: N801
-    provides=IDatabaseManager,
-    name='prefixed-table')
+    for_=IApplication, provides=IDatabaseManager, name="prefixed-table"  # noqa: N801
+)
 class PrefixedDatabaseManager(PostgresqlDatabaseManager):
     _connection_managers = {}  # shared on all instances
 
     def get_dsn(self, name: str = None) -> str:
-        if isinstance(self.config['dsn'], str):
-            return self.config['dsn']
+        if isinstance(self.config["dsn"], str):
+            return self.config["dsn"]
         else:
-            return _convert_dsn(self.config['dsn'])
+            return _convert_dsn(self.config["dsn"])
 
     async def get_names(self) -> list:
         conn = await self.get_connection()
         try:
-            result = await conn.fetch('''
+            result = await conn.fetch(
+                """
 SELECT table_name FROM information_schema.tables WHERE table_schema='public'
-''')
+"""
+            )
             return [
-                item['table_name'].replace('_objects', '') for item in result
-                if item['table_name'].endswith('_objects')]
+                item["table_name"].replace("_objects", "")
+                for item in result
+                if item["table_name"].endswith("_objects")
+            ]
         finally:
             await conn.close()
         return []
@@ -56,9 +58,10 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
 
         conn = await self.get_connection()
         try:
-            for table_name in ('blobs', 'objects'):
+            for table_name in ("blobs", "objects"):
                 await conn.execute(
-                    'DROP TABLE IF EXISTS {}_{}'.format(sqlq(name), sqlq(table_name)))
+                    "DROP TABLE IF EXISTS {}_{}".format(sqlq(name), sqlq(table_name))
+                )
             return True
         finally:
             await conn.close()
@@ -67,25 +70,27 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
     async def get_database(self, name: str) -> IDatabase:
         if name not in self.app:
             config = deepcopy(self.config)
-            config.update({
-                'dsn': self.get_dsn(name),
-                'objects_table_name': name + '_objects',
-                'blobs_table_name': name + '_blobs'
-            })
-            if self.config['storage_id'] in self._connection_managers:
-                config['connection_manager'] = self._connection_managers[
-                    self.config['storage_id']]
-            factory = get_utility(
-                IDatabaseConfigurationFactory, name=config['storage'])
+            config.update(
+                {
+                    "dsn": self.get_dsn(name),
+                    "objects_table_name": name + "_objects",
+                    "blobs_table_name": name + "_blobs",
+                }
+            )
+            if self.config["storage_id"] in self._connection_managers:
+                config["connection_manager"] = self._connection_managers[
+                    self.config["storage_id"]
+                ]
+            factory = get_utility(IDatabaseConfigurationFactory, name=config["storage"])
             self.app[name] = await apply_coroutine(factory, name, config)
-            self.app[name].__storage_id__ = self.config['storage_id']
+            self.app[name].__storage_id__ = self.config["storage_id"]
 
-            if self.config['storage_id'] not in self._connection_managers:
+            if self.config["storage_id"] not in self._connection_managers:
                 storage = self.app[name].storage
                 self._connection_managers[
-                    self.config['storage_id']] = storage.connection_manager
-                self._connection_managers[
-                    self.config['storage_id']]._closable = False
+                    self.config["storage_id"]
+                ] = storage.connection_manager
+                self._connection_managers[self.config["storage_id"]]._closable = False
             await notify(DatabaseInitializedEvent(self.app[name]))
 
         return self.app[name]
@@ -93,10 +98,14 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
     async def exists(self, name: str) -> bool:
         conn = await self.get_connection()
         try:
-            result = await conn.fetch('''
+            result = await conn.fetch(
+                """
 select * FROM information_schema.tables
 WHERE table_schema='public' and table_name = '{}_objects'
-        '''.format(sqlq(name)))
+        """.format(
+                    sqlq(name)
+                )
+            )
             return len(result) > 0
         finally:
             await conn.close()
