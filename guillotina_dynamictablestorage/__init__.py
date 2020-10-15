@@ -1,4 +1,6 @@
+import asyncio
 from copy import deepcopy
+from typing import Dict
 
 from guillotina import configure
 from guillotina.component import get_utility
@@ -12,8 +14,6 @@ from guillotina.interfaces import IApplication
 from guillotina.interfaces import IDatabase
 from guillotina.interfaces import IDatabaseConfigurationFactory
 from guillotina.utils import apply_coroutine
-from typing import Dict
-import asyncio
 
 
 app_settings = {}
