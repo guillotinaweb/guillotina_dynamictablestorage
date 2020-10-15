@@ -91,3 +91,16 @@ async def test_does_not_throw_simultaneous_error(dyn_storage):
     txn.modified = {"foobar": None}
 
     await asyncio.gather(storage1.get_conflicts(txn), storage2.get_conflicts(txn))
+
+
+async def test_get_db_simultaneously_shares_connection(dyn_storage):
+    dbs = await asyncio.gather(
+        dyn_storage.get_database("foobar1"),
+        dyn_storage.get_database("foobar2"),
+        dyn_storage.get_database("foobar3"),
+        dyn_storage.get_database("foobar4"),
+        dyn_storage.get_database("foobar5"),
+    )
+    first = dbs[1]
+    for db in dbs[1:]:
+        assert first.storage.connection_manager == db.storage.connection_manager

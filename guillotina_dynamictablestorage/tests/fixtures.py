@@ -29,4 +29,5 @@ async def dyn_storage(db, guillotina_main):
         args=[storage_config],
     )
     factory._connection_managers.clear()
+    factory._locks.clear()
     return factory
