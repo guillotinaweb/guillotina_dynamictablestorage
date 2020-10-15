@@ -1,4 +1,6 @@
+import asyncio
 from copy import deepcopy
+from typing import Dict
 
 from guillotina import configure
 from guillotina.component import get_utility
@@ -22,6 +24,12 @@ app_settings = {}
 )
 class PrefixedDatabaseManager(PostgresqlDatabaseManager):
     _connection_managers = {}  # shared on all instances
+    _locks: Dict[str, asyncio.Lock] = {}  # also shared
+
+    def _get_lock(self, storage_id: str):
+        if storage_id not in self._locks:
+            self._locks[storage_id] = asyncio.Lock()
+        return self._locks[storage_id]
 
     def get_dsn(self, name: str = None) -> str:
         if isinstance(self.config["dsn"], str):
@@ -77,21 +85,26 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
                     "blobs_table_name": name + "_blobs",
                 }
             )
-            if self.config["storage_id"] in self._connection_managers:
-                config["connection_manager"] = self._connection_managers[
-                    self.config["storage_id"]
-                ]
-            factory = get_utility(IDatabaseConfigurationFactory, name=config["storage"])
-            self.app[name] = await apply_coroutine(factory, name, config)
-            self.app[name].__storage_id__ = self.config["storage_id"]
+            async with self._get_lock(self.config["storage_id"]):
+                if self.config["storage_id"] in self._connection_managers:
+                    config["connection_manager"] = self._connection_managers[
+                        self.config["storage_id"]
+                    ]
+                factory = get_utility(
+                    IDatabaseConfigurationFactory, name=config["storage"]
+                )
+                self.app[name] = await apply_coroutine(factory, name, config)
+                self.app[name].__storage_id__ = self.config["storage_id"]
 
-            if self.config["storage_id"] not in self._connection_managers:
-                storage = self.app[name].storage
-                self._connection_managers[
-                    self.config["storage_id"]
-                ] = storage.connection_manager
-                self._connection_managers[self.config["storage_id"]]._closable = False
-            await notify(DatabaseInitializedEvent(self.app[name]))
+                if self.config["storage_id"] not in self._connection_managers:
+                    storage = self.app[name].storage
+                    self._connection_managers[
+                        self.config["storage_id"]
+                    ] = storage.connection_manager
+                    self._connection_managers[
+                        self.config["storage_id"]
+                    ]._closable = False
+                await notify(DatabaseInitializedEvent(self.app[name]))
 
         return self.app[name]
 

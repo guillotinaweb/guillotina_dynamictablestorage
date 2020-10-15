@@ -1,7 +1,9 @@
 1.1.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Use a lock when getting database connection to prevent
+  situation where multiple database are being initialized
+  simultaneously
 
 
 1.1.1 (2020-03-02)
