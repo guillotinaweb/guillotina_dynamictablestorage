@@ -1,4 +1,4 @@
-1.1.2 (unreleased)
+1.1.2 (2020-10-15)
 ------------------
 
 - Use a lock when getting database connection to prevent
