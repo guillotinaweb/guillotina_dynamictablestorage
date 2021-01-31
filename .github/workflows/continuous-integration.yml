@@ -50,5 +50,6 @@ jobs:
           pip install -e .[test]
           pytest -s --tb=native -v --cov=guillotina_dynamictablestorage --cov-report xml --cov-append guillotina_dynamictablestorage
 
+          pip install codecov
           codecov --url="https://open-coverage.org/api" --token=14396163 --slug=guillotinaweb/guillotina_dynamictablestorage
 
