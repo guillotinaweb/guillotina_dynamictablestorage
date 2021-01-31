@@ -48,4 +48,7 @@ jobs:
         run: |
           pip install Cython==0.27.3
           pip install -e .[test]
-          pytest -s --cov=guillotina_dynamictablestorage -s --tb=native -v --cov-report term-missing --cov-append guillotina_dynamictablestorage
+          pytest -s --tb=native -v --cov=guillotina_dynamictablestorage --cov-report xml --cov-append guillotina_dynamictablestorage
+
+          codecov --url="https://open-coverage.org/api" --token=14396163 --slug=guillotinaweb/guillotina_dynamictablestorage
+
