@@ -28,7 +28,7 @@ app_settings = {}
 class PrefixedDatabaseManager(PostgresqlDatabaseManager):
     _connection_managers = {}  # shared on all instances
     _locks: Dict[str, asyncio.Lock] = {}  # also shared
-    _pool: Optional[asyncpg.Pool]
+    _pool = None
 
     def _get_lock(self, storage_id: str):
         if storage_id not in self._locks:
