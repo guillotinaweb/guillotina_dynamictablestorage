@@ -1,7 +1,9 @@
 import asyncio
 from copy import deepcopy
 from typing import Dict
+from typing import List
 
+import asyncpg
 from guillotina import configure
 from guillotina.component import get_utility
 from guillotina.contrib.catalog.pg import sqlq
@@ -25,6 +27,7 @@ app_settings = {}
 class PrefixedDatabaseManager(PostgresqlDatabaseManager):
     _connection_managers = {}  # shared on all instances
     _locks: Dict[str, asyncio.Lock] = {}  # also shared
+    _pool = None
 
     def _get_lock(self, storage_id: str):
         if storage_id not in self._locks:
@@ -37,9 +40,21 @@ class PrefixedDatabaseManager(PostgresqlDatabaseManager):
         else:
             return _convert_dsn(self.config["dsn"])
 
-    async def get_names(self) -> list:
-        conn = await self.get_connection()
-        try:
+    async def get_pool(self) -> asyncpg.connection.Connection:
+        if self._pool is None:
+            dsn = self.get_dsn()
+            self._pool = await asyncpg.create_pool(
+                dsn=dsn,
+                max_size=5,
+                min_size=0,
+                statement_cache_size=0,
+                max_inactive_connection_lifetime=60,
+            )
+        return self._pool
+
+    async def get_names(self) -> List[str]:
+        pool = await self.get_pool()
+        async with pool.acquire() as conn:
             result = await conn.fetch(
                 """
 SELECT table_name FROM information_schema.tables WHERE table_schema='public'
@@ -50,9 +65,6 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
                 for item in result
                 if item["table_name"].endswith("_objects")
             ]
-        finally:
-            await conn.close()
-        return []
 
     async def create(self, name: str) -> bool:
         # creates db here...
@@ -64,16 +76,13 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
             await self.app[name].finalize()
             del self.app[name]
 
-        conn = await self.get_connection()
-        try:
+        pool = await self.get_pool()
+        async with pool.acquire() as conn:
             for table_name in ("blobs", "objects"):
                 await conn.execute(
                     "DROP TABLE IF EXISTS {}_{}".format(sqlq(name), sqlq(table_name))
                 )
             return True
-        finally:
-            await conn.close()
-        return False
 
     async def get_database(self, name: str) -> IDatabase:
         if name not in self.app:
@@ -109,8 +118,8 @@ SELECT table_name FROM information_schema.tables WHERE table_schema='public'
         return self.app[name]
 
     async def exists(self, name: str) -> bool:
-        conn = await self.get_connection()
-        try:
+        pool = await self.get_pool()
+        async with pool.acquire() as conn:
             result = await conn.fetch(
                 """
 select * FROM information_schema.tables
@@ -120,12 +129,8 @@ WHERE table_schema='public' and table_name = '{}_objects'
                 )
             )
             return len(result) > 0
-        finally:
-            await conn.close()
-        return False
 
 
 def includeme(root):
-    """
-    """
+    """"""
     pass
