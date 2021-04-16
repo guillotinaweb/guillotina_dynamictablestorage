@@ -1,7 +1,7 @@
 1.1.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Use pool instead of open/close connection on every op
 
 
 1.1.2 (2020-10-15)
