@@ -1,9 +1,15 @@
+import asyncio
 from copy import deepcopy
+from typing import Dict
+from typing import List
+from typing import Optional
+
+import asyncpg
 from guillotina import configure
 from guillotina.component import get_utility
 from guillotina.contrib.catalog.pg import sqlq
-from guillotina.db.factory import _convert_dsn
 from guillotina.db.factory import PostgresqlDatabaseManager
+from guillotina.db.factory import _convert_dsn
 from guillotina.db.interfaces import IDatabaseManager
 from guillotina.event import notify
 from guillotina.events import DatabaseInitializedEvent
@@ -11,12 +17,6 @@ from guillotina.interfaces import IApplication
 from guillotina.interfaces import IDatabase
 from guillotina.interfaces import IDatabaseConfigurationFactory
 from guillotina.utils import apply_coroutine
-from typing import Dict
-from typing import List
-from typing import Optional
-
-import asyncio
-import asyncpg
 
 
 app_settings = {}

@@ -23,7 +23,7 @@ jobs:
         run: |
           pip install flake8 black==19.10b0 isort
           flake8 guillotina_dynamictablestorage --config=setup.cfg
-          isort -c -rc guillotina_dynamictablestorage
+          isort -c guillotina_dynamictablestorage
           black --check --verbose guillotina_dynamictablestorage
 
   tests:
