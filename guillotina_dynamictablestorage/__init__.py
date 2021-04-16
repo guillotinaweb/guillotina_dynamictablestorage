@@ -2,7 +2,6 @@ import asyncio
 from copy import deepcopy
 from typing import Dict
 from typing import List
-from typing import Optional
 
 import asyncpg
 from guillotina import configure
