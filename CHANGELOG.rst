@@ -1,4 +1,4 @@
-1.1.4 (unreleased)
+1.1.4 (2021-05-13)
 ------------------
 
 - Fix potential connection leak in connection pool
