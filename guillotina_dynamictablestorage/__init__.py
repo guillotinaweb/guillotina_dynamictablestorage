@@ -27,7 +27,6 @@ app_settings = {}
 class PrefixedDatabaseManager(PostgresqlDatabaseManager):
     _connection_managers = {}  # shared on all instances
     _locks: Dict[str, asyncio.Lock] = {}  # also shared
-    _pool = None
 
     def _get_lock(self, storage_id: str):
         if storage_id not in self._locks:
@@ -40,17 +39,28 @@ class PrefixedDatabaseManager(PostgresqlDatabaseManager):
         else:
             return _convert_dsn(self.config["dsn"])
 
-    async def get_pool(self) -> asyncpg.connection.Connection:
-        if self._pool is None:
+    async def get_pool(self) -> asyncpg.pool.Pool:
+        """
+        Get connection pool for storage and cache it on the app object
+        """
+        pool_name = f'_pool_{self.config["storage_id"]}'
+        if getattr(self.app, pool_name, None) is None:
             dsn = self.get_dsn()
-            self._pool = await asyncpg.create_pool(
-                dsn=dsn,
-                max_size=5,
-                min_size=0,
-                statement_cache_size=0,
-                max_inactive_connection_lifetime=60,
-            )
-        return self._pool
+            async with self._get_lock(self.config["storage_id"]):
+                # check again after lock
+                if getattr(self.app, pool_name, None) is None:
+                    setattr(
+                        self.app,
+                        pool_name,
+                        await asyncpg.create_pool(
+                            dsn=dsn,
+                            max_size=5,
+                            min_size=0,
+                            statement_cache_size=0,
+                            max_inactive_connection_lifetime=60,
+                        ),
+                    )
+        return getattr(self.app, pool_name)
 
     async def get_names(self) -> List[str]:
         pool = await self.get_pool()
