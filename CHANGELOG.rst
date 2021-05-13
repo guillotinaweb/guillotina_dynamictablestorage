@@ -1,7 +1,7 @@
 1.1.4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fix potential connection leak in connection pool
 
 
 1.1.3 (2021-04-16)
